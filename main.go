@@ -7,11 +7,6 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-//	func get_hitbox(pos rl.Vector3, dim rl.Vector3) rl.BoundingBox {
-//		return rl.NewBoundingBox(
-//			rl.NewVector3(pos.X-dim.X/2, pos.Y-dim.Y/2, pos.Z-dim.Z/2),
-//			rl.NewVector3(pos.X+dim.X/2, pos.Y+dim.Y/2, pos.Z+dim.Z/2))
-//	}
 func get_hitbox(pos rl.Vector3, model rl.Model) rl.BoundingBox {
 	bounding_box := rl.GetMeshBoundingBox(model.GetMeshes()[0])
 	return rl.NewBoundingBox(
@@ -112,68 +107,70 @@ func (p *Player) update(obstacles []rl.BoundingBox) {
 	p.hitbox = get_hitbox(p.pos, p.model)
 
 	// Move
-	if !p.check_collisions(nil, nil, false){
-		var dir rl.Vector3
-		if rl.IsKeyDown(rl.KeyD) {
-			dir.X = 1
-		} else if rl.IsKeyDown(rl.KeyA) {
-			dir.X = -1
-		} else {
-			dir.X = 0
-		}
-		if rl.IsKeyDown(rl.KeyW) {
-			dir.Z = -1
-		} else if rl.IsKeyDown(rl.KeyS) {
-			dir.Z = 1
-		} else {
-			dir.Z = 0
-		}
-
-		dir = rl.Vector3Normalize(dir)
-	
-		p.speed.X += dir.X * p.acceleration
-		p.speed.Z += dir.Z * p.acceleration
-
-		p.speed.X *= p.friction
-		if math.Abs(float64(p.speed.X)) < 0.1 {
-			p.speed.X = 0
-		}
-		p.speed.Z *= p.friction
-		if math.Abs(float64(p.speed.Z)) < 0.1 {
-			p.speed.Z = 0
-		}
+	// if !p.check_collisions(nil, nil, false) {
+	var dir rl.Vector3
+	if rl.IsKeyDown(rl.KeyD) {
+		dir.X = 1
+	} else if rl.IsKeyDown(rl.KeyA) {
+		dir.X = -1
+	} else {
+		dir.X = 0
+	}
+	if rl.IsKeyDown(rl.KeyW) {
+		dir.Z = -1
+	} else if rl.IsKeyDown(rl.KeyS) {
+		dir.Z = 1
+	} else {
+		dir.Z = 0
 	}
 
+	dir = rl.Vector3Normalize(dir)
+
+	p.speed.X += dir.X * p.acceleration
+	p.speed.Z += dir.Z * p.acceleration
+
+	p.speed.X *= p.friction
+	if math.Abs(float64(p.speed.X)) < 0.1 {
+		p.speed.X = 0
+	}
+	p.speed.Z *= p.friction
+	if math.Abs(float64(p.speed.Z)) < 0.1 {
+		p.speed.Z = 0
+	}
+	// }
+
 	p.pos.X += p.speed.X
+	p.hitbox = get_hitbox(p.pos, p.model)
 	p.check_collisions("x", obstacles, true)
 	p.pos.Z += p.speed.Z
+	p.hitbox = get_hitbox(p.pos, p.model)
 	p.check_collisions("z", obstacles, true)
 
 }
 
-func (p *Player) check_collisions(axis any, obstacles []rl.BoundingBox, update bool) bool{
+func (p *Player) check_collisions(axis any, obstacles []rl.BoundingBox, update bool) bool {
 
 	for _, obstacle := range obstacles {
 		if rl.CheckCollisionBoxes(obstacle, p.hitbox) {
-			
+
 			fmt.Println("collision")
 
 			if update {
 				if axis == "x" {
 					if p.speed.X > 0 {
-						p.pos.X = obstacle.Min.X - p.length/2 - 0.00001
+						p.pos.X = obstacle.Min.X - p.length/2 - 0.0001
 						p.speed.X = 0
-					}else if p.speed.X < 0 {
-						p.pos.X = obstacle.Max.X + p.length/2 + 0.00001
+					} else if p.speed.X < 0 {
+						p.pos.X = obstacle.Max.X + p.length/2 + 0.0001
 						p.speed.X = 0
 					}
 				}
 				if axis == "z" {
 					if p.speed.Z > 0 {
-						p.pos.Z = obstacle.Min.Z - p.length/2 - 0.00001
+						p.pos.Z = obstacle.Min.Z - p.length/2 - 0.0001
 						p.speed.Z = 0
-					}else if p.speed.Z < 0 {
-						p.pos.Z = obstacle.Max.Z + p.length/2 + 0.00001
+					} else if p.speed.Z < 0 {
+						p.pos.Z = obstacle.Max.Z + p.length/2 + 0.0001
 						p.speed.Z = 0
 					}
 				}
@@ -183,7 +180,9 @@ func (p *Player) check_collisions(axis any, obstacles []rl.BoundingBox, update b
 			}
 			return true
 
-		}else{fmt.Println("no collision")}
+		} else {
+			fmt.Println("no collision")
+		}
 	}
 	return false
 }
